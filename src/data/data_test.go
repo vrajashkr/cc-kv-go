@@ -49,3 +49,45 @@ func TestSimpleStringToDataString(t *testing.T) {
 		})
 	}
 }
+
+func TestProcessMessageStringWithError(t *testing.T) {
+	testCases := []struct {
+		input string
+		want  string
+	}{
+		{"-Error Message\r\n", "Error Message"},
+		{"-error123\r\n", "error123"},
+	}
+
+	assert := assert.New(t)
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
+			result, err := data.ProcessMessageString(tc.input)
+			assert.Nil(err)
+
+			e, ok := result.(data.Error)
+			assert.True(ok)
+			assert.Equal(tc.want, e.ErrMsg)
+		})
+	}
+}
+
+func TestErrorToDataString(t *testing.T) {
+	testCases := []struct {
+		want  string
+		input string
+	}{
+		{"-Error Message\r\n", "Error Message"},
+		{"-error123\r\n", "error123"},
+	}
+
+	assert := assert.New(t)
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
+			msg := data.Error{
+				ErrMsg: tc.input,
+			}
+			assert.Equal(tc.want, msg.ToDataString())
+		})
+	}
+}
