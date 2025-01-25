@@ -1,6 +1,9 @@
 package data
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 const (
 	MSG_TYPE_SIMPLE_STR = '+'
@@ -42,6 +45,25 @@ func (e Error) ToDataString() string {
 	return fmt.Sprintf("%c%s\r\n", MSG_TYPE_ERROR, e.ErrMsg)
 }
 
+type Integer struct {
+	Value int64
+}
+
+func NewInteger(rawMsg string) (Integer, error) {
+	numericString := rawMsg[1 : len(rawMsg)-2]
+	val, err := strconv.Atoi(numericString)
+	if err != nil {
+		return Integer{}, err
+	}
+	return Integer{
+		Value: int64(val),
+	}, nil
+}
+
+func (i Integer) ToDataString() string {
+	return fmt.Sprintf("%c%d\r\n", MSG_TYPE_INT, i.Value)
+}
+
 func ProcessMessageString(msg string) (Message, error) {
 	if len(msg) <= 1 {
 		return nil, fmt.Errorf("received empty invalid message")
@@ -54,6 +76,8 @@ func ProcessMessageString(msg string) (Message, error) {
 		convertedMsg, err = NewSimpleString(msg)
 	case MSG_TYPE_ERROR:
 		convertedMsg, err = NewError(msg)
+	case MSG_TYPE_INT:
+		convertedMsg, err = NewInteger(msg)
 	}
 	return convertedMsg, err
 }
