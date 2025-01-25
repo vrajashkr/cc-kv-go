@@ -3,11 +3,11 @@ package data
 import "fmt"
 
 const (
-	MSG_TYPE_SIMPLE_STR = "+"
-	MSG_TYPE_ERROR      = "-"
-	MSG_TYPE_INT        = ":"
-	MSG_TYPE_BULK_STR   = "$"
-	MSG_TYPE_ARRAY      = "*"
+	MSG_TYPE_SIMPLE_STR = '+'
+	MSG_TYPE_ERROR      = '-'
+	MSG_TYPE_INT        = ':'
+	MSG_TYPE_BULK_STR   = '$'
+	MSG_TYPE_ARRAY      = '*'
 )
 
 type Message interface {
@@ -25,7 +25,7 @@ func NewSimpleString(rawMsg string) (SimpleString, error) {
 }
 
 func (s SimpleString) ToDataString() string {
-	return fmt.Sprintf("%s%s\r\n", MSG_TYPE_SIMPLE_STR, s.Contents)
+	return fmt.Sprintf("%c%s\r\n", MSG_TYPE_SIMPLE_STR, s.Contents)
 }
 
 func ProcessMessageString(msg string) (Message, error) {
@@ -36,7 +36,7 @@ func ProcessMessageString(msg string) (Message, error) {
 	var convertedMsg Message
 	var err error
 	switch msg[0] {
-	case '+':
+	case MSG_TYPE_SIMPLE_STR:
 		{
 			convertedMsg, err = NewSimpleString(msg)
 		}
