@@ -164,3 +164,62 @@ func TestIntegerToDataString(t *testing.T) {
 		})
 	}
 }
+
+func TestProcessMessageStringWithBulkString(t *testing.T) {
+	testCases := []struct {
+		input string
+		want  string
+	}{
+		{"$5\r\nhello\r\n", "hello"},
+		{"$15\r\nHello world 123\r\n", "Hello world 123"},
+		{"$0\r\n\r\n", ""},
+	}
+
+	assert := assert.New(t)
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
+			result, err := data.ProcessMessageString(tc.input)
+			assert.Nil(err)
+
+			bS, ok := result.(data.BulkString)
+			assert.True(ok)
+			assert.Equal(tc.want, bS.Data)
+		})
+	}
+}
+
+func TestBulkStringToDataString(t *testing.T) {
+	testCases := []struct {
+		want  string
+		input string
+	}{
+		{"$5\r\nhello\r\n", "hello"},
+		{"$15\r\nHello world 123\r\n", "Hello world 123"},
+		{"$0\r\n\r\n", ""},
+	}
+
+	assert := assert.New(t)
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
+			msg := data.BulkString{
+				Data: tc.input,
+			}
+			assert.Equal(tc.want, msg.ToDataString())
+		})
+	}
+}
+
+func TestProcessMessageStringWithIncorrectBulkString(t *testing.T) {
+	testCases := []string{
+		"$nonsense\r\n",
+		"$\r\n",
+	}
+
+	assert := assert.New(t)
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("input %s", tc), func(t *testing.T) {
+			_, err := data.ProcessMessageString(tc)
+			assert.NotNil(err)
+		})
+	}
+}

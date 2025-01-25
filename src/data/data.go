@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -64,6 +65,31 @@ func (i Integer) ToDataString() string {
 	return fmt.Sprintf("%c%d\r\n", MSG_TYPE_INT, i.Value)
 }
 
+type BulkString struct {
+	Data string
+}
+
+func NewBulkString(rawMsg string) (BulkString, error) {
+	firstCRIndex := strings.IndexByte(rawMsg, '\r')
+	if firstCRIndex < 2 {
+		return BulkString{}, fmt.Errorf("invalid format for bulk string")
+	}
+
+	strLen, err := strconv.Atoi(rawMsg[1:firstCRIndex])
+	if err != nil {
+		return BulkString{}, err
+	}
+
+	dataStartIdx := firstCRIndex + 2
+	return BulkString{
+		Data: rawMsg[dataStartIdx : dataStartIdx+strLen],
+	}, nil
+}
+
+func (bs BulkString) ToDataString() string {
+	return fmt.Sprintf("%c%d\r\n%s\r\n", MSG_TYPE_BULK_STR, len(bs.Data), bs.Data)
+}
+
 func ProcessMessageString(msg string) (Message, error) {
 	if len(msg) <= 1 {
 		return nil, fmt.Errorf("received empty invalid message")
@@ -78,6 +104,8 @@ func ProcessMessageString(msg string) (Message, error) {
 		convertedMsg, err = NewError(msg)
 	case MSG_TYPE_INT:
 		convertedMsg, err = NewInteger(msg)
+	case MSG_TYPE_BULK_STR:
+		convertedMsg, err = NewBulkString(msg)
 	default:
 		err = fmt.Errorf("unsupported message discriminator")
 	}
