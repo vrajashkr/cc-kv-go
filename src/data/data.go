@@ -78,6 +78,8 @@ func ProcessMessageString(msg string) (Message, error) {
 		convertedMsg, err = NewError(msg)
 	case MSG_TYPE_INT:
 		convertedMsg, err = NewInteger(msg)
+	default:
+		err = fmt.Errorf("unsupported message discriminator")
 	}
 	return convertedMsg, err
 }

@@ -11,6 +11,7 @@ import (
 func TestProcessMessageStringWithInvalidStrings(t *testing.T) {
 	testCases := []string{
 		"",
+		"hello",
 	}
 
 	assert := assert.New(t)
