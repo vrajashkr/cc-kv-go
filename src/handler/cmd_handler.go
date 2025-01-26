@@ -11,6 +11,7 @@ import (
 const (
 	CMD_PING  = "PING"
 	CMD_HELLO = "HELLO"
+	CMD_ECHO  = "ECHO"
 )
 
 var INVALID_CMD_FMT = data.Error{ErrMsg: "invalid format for command"}
@@ -22,6 +23,19 @@ func handlePing(cmd data.Array) data.Message {
 
 	if cmdLen == 1 {
 		return data.SimpleString{Contents: "PONG"}
+	}
+
+	incomingContents, ok := cmd.Elements[1].(data.BulkString)
+	if !ok {
+		return INVALID_CMD_ARGS
+	}
+	return incomingContents
+}
+
+// https://redis.io/commands/echo/
+func handleEcho(cmd data.Array) data.Message {
+	if len(cmd.Elements) < 2 {
+		return INVALID_CMD_ARGS
 	}
 
 	incomingContents, ok := cmd.Elements[1].(data.BulkString)
@@ -65,6 +79,8 @@ func HandleCommand(msg data.Message) data.Message {
 		result = handlePing(cmdArray)
 	case CMD_HELLO:
 		result = handleHello(cmdArray)
+	case CMD_ECHO:
+		result = handleEcho(cmdArray)
 	default:
 		result = data.Error{
 			ErrMsg: fmt.Sprintf("unsupported command %s", firstCmd.Data),

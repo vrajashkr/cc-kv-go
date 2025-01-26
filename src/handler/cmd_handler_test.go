@@ -32,6 +32,23 @@ func TestHandleCommand(t *testing.T) {
 			data.BulkString{Data: "hello world"},
 		},
 		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "ECHO"},
+					data.BulkString{Data: "hello world"},
+				},
+			},
+			data.BulkString{Data: "hello world"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "ECHO"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
 			data.SimpleString{Contents: "test"},
 			data.Error{ErrMsg: "invalid format for command"},
 		},
