@@ -219,7 +219,7 @@ func TestHandleCommand(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("input-%s", tc.input.ToDataString()), func(t *testing.T) {
-			result := handler.HandleCommand(tc.input, storageEngine)
+			result := handler.HandleCommand(tc.input, &storageEngine)
 			assert.Equal(tc.want, result)
 		})
 	}

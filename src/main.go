@@ -34,7 +34,7 @@ func main() {
 			slog.Error("failed to accept connection due to error: " + err.Error())
 			return
 		}
-		go handleConnection(conn, storageEngine)
+		go handleConnection(conn, &storageEngine)
 	}
 }
 
