@@ -11,7 +11,7 @@ import (
 
 const (
 	LARGE_BUF_SIZE = 2048
-	READ_BUF_SIZE  = 256
+	READ_BUF_SIZE  = 128
 )
 
 func main() {
@@ -41,25 +41,31 @@ func main() {
 func handleConnection(c net.Conn, storage storage.StorageEngine) {
 	defer c.Close()
 
-	buf := make([]byte, 0, LARGE_BUF_SIZE)
-	tmp := make([]byte, READ_BUF_SIZE)
+	reachedEnd := false
 	for {
-		numBytes, err := c.Read(tmp)
-		if err != nil {
-			if err != io.EOF {
-				slog.Error("error while processing request: " + err.Error())
+		buf := make([]byte, 0, LARGE_BUF_SIZE)
+		tmp := make([]byte, READ_BUF_SIZE)
+		for {
+			numBytes, err := c.Read(tmp)
+			if err != nil {
+				if err != io.EOF {
+					slog.Error("error while processing request: " + err.Error())
+				}
+				reachedEnd = true
+				break
 			}
+			buf = append(buf, tmp[:numBytes]...)
+			if numBytes < READ_BUF_SIZE {
+				result := handler.ServeInput(buf, storage)
+				_, err := c.Write([]byte(result))
+				if err != nil {
+					slog.Error("failed to respond to client due to error: " + err.Error())
+				}
+				break
+			}
+		}
+		if reachedEnd {
 			break
 		}
-		buf = append(buf, tmp[:numBytes]...)
-		if numBytes < READ_BUF_SIZE {
-			break
-		}
-	}
-
-	result := handler.ServeInput(buf, storage)
-	_, err := c.Write([]byte(result))
-	if err != nil {
-		slog.Error("failed to respond to client due to error: " + err.Error())
 	}
 }

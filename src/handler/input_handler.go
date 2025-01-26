@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/vrajashkr/cc-kv-go/src/data"
@@ -9,12 +10,23 @@ import (
 
 func ServeInput(rawData []byte, storage storage.StorageEngine) string {
 	rawStr := string(rawData)
-	_, parsedMsg, err := data.ProcessMessageString(rawStr)
-	slog.Info("received message: " + rawStr)
-	if err != nil {
-		return data.Error{
-			ErrMsg: err.Error(),
-		}.ToDataString()
+	rawStrLen := len(rawStr)
+	slog.Info(fmt.Sprintf("received message: %q", rawStr))
+	numProcessedChars := 0
+	result := ""
+
+	for {
+		numChars, parsedMsg, err := data.ProcessMessageString(rawStr[numProcessedChars:])
+		if err != nil {
+			result += data.Error{ErrMsg: err.Error()}.ToDataString()
+		} else {
+			result += HandleCommand(parsedMsg, storage).ToDataString()
+		}
+		numProcessedChars += numChars
+		if numProcessedChars == rawStrLen {
+			break
+		}
 	}
-	return HandleCommand(parsedMsg, storage).ToDataString()
+
+	return result
 }
