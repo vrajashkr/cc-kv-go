@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/vrajashkr/cc-kv-go/src/handler"
+	"github.com/vrajashkr/cc-kv-go/src/storage"
 )
 
 const (
@@ -16,6 +17,10 @@ const (
 func main() {
 	slog.Info("starting cc-kv-go server")
 
+	slog.Info("initializing storage engine")
+	storageEngine := storage.NewMapStorageEngine()
+
+	slog.Info("starting listener")
 	l, err := net.Listen("tcp4", ":6379")
 	if err != nil {
 		slog.Error("failed to start TCP server due to error: " + err.Error())
@@ -29,11 +34,11 @@ func main() {
 			slog.Error("failed to accept connection due to error: " + err.Error())
 			return
 		}
-		go handleConnection(conn)
+		go handleConnection(conn, storageEngine)
 	}
 }
 
-func handleConnection(c net.Conn) {
+func handleConnection(c net.Conn, storage storage.StorageEngine) {
 	defer c.Close()
 
 	buf := make([]byte, 0, LARGE_BUF_SIZE)
@@ -52,7 +57,7 @@ func handleConnection(c net.Conn) {
 		}
 	}
 
-	result := handler.ServeInput(buf)
+	result := handler.ServeInput(buf, storage)
 	_, err := c.Write([]byte(result))
 	if err != nil {
 		slog.Error("failed to respond to client due to error: " + err.Error())
