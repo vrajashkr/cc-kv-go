@@ -17,12 +17,19 @@ func TestHandleCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
-					data.BulkString{
-						Data: "PING",
-					},
+					data.BulkString{Data: "PING"},
 				},
 			},
 			data.SimpleString{Contents: "PONG"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "PING"},
+					data.BulkString{Data: "hello world"},
+				},
+			},
+			data.BulkString{Data: "hello world"},
 		},
 		{
 			data.SimpleString{Contents: "test"},
@@ -39,12 +46,10 @@ func TestHandleCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
-					data.BulkString{
-						Data: "UNSUPPORTED",
-					},
+					data.BulkString{Data: "UNSUPPORTED"},
 				},
 			},
-			data.Error{ErrMsg: "unsupported command"},
+			data.Error{ErrMsg: "unsupported command UNSUPPORTED"},
 		},
 	}
 
