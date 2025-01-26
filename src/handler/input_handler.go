@@ -1,6 +1,8 @@
 package handler
 
-import "github.com/vrajashkr/cc-kv-go/src/data"
+import (
+	"github.com/vrajashkr/cc-kv-go/src/data"
+)
 
 func ServeInput(rawData []byte) string {
 	rawStr := string(rawData)
