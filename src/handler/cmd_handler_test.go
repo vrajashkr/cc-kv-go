@@ -198,6 +198,10 @@ func TestHandleCommand(t *testing.T) {
 				Elements: []data.Message{
 					data.BulkString{Data: "maxmemory"},
 					data.BulkString{Data: "0"},
+					data.BulkString{Data: "save"},
+					data.BulkString{Data: ""},
+					data.BulkString{Data: "appendonly"},
+					data.BulkString{Data: "no"},
 				},
 			},
 		},
