@@ -51,6 +51,33 @@ func TestHandleCommand(t *testing.T) {
 			},
 			data.Error{ErrMsg: "unsupported command UNSUPPORTED"},
 		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "HELLO"},
+					data.BulkString{Data: "3"},
+				},
+			},
+			data.Error{ErrMsg: "NOPROTO sorry, this protocol version is not supported"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "HELLO"},
+					data.BulkString{Data: "2"},
+				},
+			},
+			data.SimpleString{Contents: "OK"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "HELLO"},
+					data.BulkString{Data: "nan"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
 	}
 
 	assert := assert.New(t)
