@@ -325,3 +325,28 @@ func TestArrayToDataString(t *testing.T) {
 		})
 	}
 }
+
+func TestProcessMessageStringWithNull(t *testing.T) {
+	testCases := []string{
+		"$-1\r\n",
+		"*-1\r\n",
+	}
+
+	assert := assert.New(t)
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("input %s", tc), func(t *testing.T) {
+			charsConsumedCount, result, err := data.ProcessMessageString(tc)
+			assert.Nil(err)
+
+			_, ok := result.(data.Null)
+			assert.True(ok)
+			assert.Equal(5, charsConsumedCount)
+		})
+	}
+}
+
+func TestNullToDataString(t *testing.T) {
+	assert := assert.New(t)
+	msg := data.Null{}
+	assert.Equal("$-1\r\n", msg.ToDataString())
+}

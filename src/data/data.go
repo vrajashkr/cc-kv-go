@@ -12,6 +12,8 @@ const (
 	MSG_TYPE_INT        = ':'
 	MSG_TYPE_BULK_STR   = '$'
 	MSG_TYPE_ARRAY      = '*'
+	MSG_NULL_W_BULK_STR = "$-1\r\n"
+	MSG_NULL_W_ARRAY    = "*-1\r\n"
 )
 
 type Message interface {
@@ -134,6 +136,16 @@ func (a Array) ToDataString() string {
 	return out
 }
 
+type Null struct{}
+
+func NewNull() (int, Null) {
+	return len(MSG_NULL_W_BULK_STR), Null{}
+}
+
+func (n Null) ToDataString() string {
+	return MSG_NULL_W_BULK_STR
+}
+
 func ProcessMessageString(msg string) (int, Message, error) {
 	if len(msg) <= 1 {
 		return 0, nil, fmt.Errorf("received empty invalid message")
@@ -150,9 +162,17 @@ func ProcessMessageString(msg string) (int, Message, error) {
 	case MSG_TYPE_INT:
 		consumedCount, convertedMsg, err = NewInteger(msg)
 	case MSG_TYPE_BULK_STR:
-		consumedCount, convertedMsg, err = NewBulkString(msg)
+		if msg == MSG_NULL_W_BULK_STR {
+			consumedCount, convertedMsg = NewNull()
+		} else {
+			consumedCount, convertedMsg, err = NewBulkString(msg)
+		}
 	case MSG_TYPE_ARRAY:
-		consumedCount, convertedMsg, err = NewArray(msg)
+		if msg == MSG_NULL_W_ARRAY {
+			consumedCount, convertedMsg = NewNull()
+		} else {
+			consumedCount, convertedMsg, err = NewArray(msg)
+		}
 	default:
 		err = fmt.Errorf("unsupported message discriminator")
 	}
