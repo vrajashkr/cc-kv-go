@@ -17,8 +17,9 @@ func TestProcessMessageStringWithInvalidStrings(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("input %s", tc), func(t *testing.T) {
-			_, err := data.ProcessMessageString(tc)
+			charsConsumedCount, _, err := data.ProcessMessageString(tc)
 			assert.NotNil(err)
+			assert.Equal(0, charsConsumedCount)
 		})
 	}
 }
@@ -35,12 +36,13 @@ func TestProcessMessageStringWithSimpleString(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
-			result, err := data.ProcessMessageString(tc.input)
+			charsConsumedCount, result, err := data.ProcessMessageString(tc.input)
 			assert.Nil(err)
 
 			sS, ok := result.(data.SimpleString)
 			assert.True(ok)
 			assert.Equal(tc.want, sS.Contents)
+			assert.Equal(len(tc.input), charsConsumedCount)
 		})
 	}
 }
@@ -77,12 +79,13 @@ func TestProcessMessageStringWithError(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
-			result, err := data.ProcessMessageString(tc.input)
+			charsConsumedCount, result, err := data.ProcessMessageString(tc.input)
 			assert.Nil(err)
 
 			e, ok := result.(data.Error)
 			assert.True(ok)
 			assert.Equal(tc.want, e.ErrMsg)
+			assert.Equal(len(tc.input), charsConsumedCount)
 		})
 	}
 }
@@ -120,12 +123,13 @@ func TestProcessMessageStringWithInteger(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
-			result, err := data.ProcessMessageString(tc.input)
+			charsConsumedCount, result, err := data.ProcessMessageString(tc.input)
 			assert.Nil(err)
 
 			e, ok := result.(data.Integer)
 			assert.True(ok)
 			assert.Equal(tc.want, e.Value)
+			assert.Equal(len(tc.input), charsConsumedCount)
 		})
 	}
 }
@@ -139,8 +143,9 @@ func TestProcessMessageStringWithIncorrectInteger(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("input %s", tc), func(t *testing.T) {
-			_, err := data.ProcessMessageString(tc)
+			charsConsumedCount, _, err := data.ProcessMessageString(tc)
 			assert.NotNil(err)
+			assert.Equal(0, charsConsumedCount)
 		})
 	}
 }
@@ -178,12 +183,13 @@ func TestProcessMessageStringWithBulkString(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
-			result, err := data.ProcessMessageString(tc.input)
+			charsConsumedCount, result, err := data.ProcessMessageString(tc.input)
 			assert.Nil(err)
 
 			bS, ok := result.(data.BulkString)
 			assert.True(ok)
 			assert.Equal(tc.want, bS.Data)
+			assert.Equal(len(tc.input), charsConsumedCount)
 		})
 	}
 }
@@ -218,8 +224,104 @@ func TestProcessMessageStringWithIncorrectBulkString(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("input %s", tc), func(t *testing.T) {
-			_, err := data.ProcessMessageString(tc)
+			charsConsumedCount, _, err := data.ProcessMessageString(tc)
 			assert.NotNil(err)
+			assert.Equal(0, charsConsumedCount)
+		})
+	}
+}
+
+func TestProcessMessageStringWithArray(t *testing.T) {
+	testCases := []struct {
+		input string
+		want  []data.Message
+	}{
+		{"*3\r\n:1\r\n:2\r\n:3\r\n", []data.Message{
+			data.Integer{
+				Value: 1,
+			},
+			data.Integer{
+				Value: 2,
+			},
+			data.Integer{
+				Value: 3,
+			},
+		},
+		},
+		{"*0\r\n", []data.Message{}},
+		{"*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n", []data.Message{
+			data.BulkString{
+				Data: "hello",
+			},
+			data.BulkString{
+				Data: "world",
+			},
+		}},
+		{"*3\r\n$5\r\nhello\r\n$5\r\nworld\r\n:67\r\n", []data.Message{
+			data.BulkString{
+				Data: "hello",
+			},
+			data.BulkString{
+				Data: "world",
+			},
+			data.Integer{
+				Value: 67,
+			},
+		}},
+	}
+
+	assert := assert.New(t)
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
+			charsConsumedCount, result, err := data.ProcessMessageString(tc.input)
+			assert.Nil(err)
+
+			bS, ok := result.(data.Array)
+			assert.True(ok)
+			assert.Equal(tc.want, bS.Elements)
+			assert.Equal(len(tc.input), charsConsumedCount)
+		})
+	}
+}
+
+func TestArrayToDataString(t *testing.T) {
+	testCases := []struct {
+		want  string
+		input []data.Message
+	}{
+		{"*3\r\n:1\r\n:2\r\n:3\r\n", []data.Message{
+			data.Integer{
+				Value: 1,
+			},
+			data.Integer{
+				Value: 2,
+			},
+			data.Integer{
+				Value: 3,
+			},
+		},
+		},
+		{"*0\r\n", []data.Message{}},
+		{"*3\r\n$5\r\nhello\r\n$5\r\nworld\r\n:67\r\n", []data.Message{
+			data.BulkString{
+				Data: "hello",
+			},
+			data.BulkString{
+				Data: "world",
+			},
+			data.Integer{
+				Value: 67,
+			},
+		}},
+	}
+
+	assert := assert.New(t)
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("input %s", tc.input), func(t *testing.T) {
+			msg := data.Array{
+				Elements: tc.input,
+			}
+			assert.Equal(tc.want, msg.ToDataString())
 		})
 	}
 }

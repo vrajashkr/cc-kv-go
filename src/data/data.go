@@ -22,9 +22,10 @@ type SimpleString struct {
 	Contents string
 }
 
-func NewSimpleString(rawMsg string) (SimpleString, error) {
-	return SimpleString{
-		Contents: rawMsg[1 : len(rawMsg)-2],
+func NewSimpleString(rawMsg string) (int, SimpleString, error) {
+	firstCRLFIndex := strings.Index(rawMsg, "\r\n")
+	return firstCRLFIndex + 2, SimpleString{
+		Contents: rawMsg[1:firstCRLFIndex],
 	}, nil
 }
 
@@ -36,9 +37,10 @@ type Error struct {
 	ErrMsg string
 }
 
-func NewError(rawMsg string) (Error, error) {
-	return Error{
-		ErrMsg: rawMsg[1 : len(rawMsg)-2],
+func NewError(rawMsg string) (int, Error, error) {
+	firstCRLFIndex := strings.Index(rawMsg, "\r\n")
+	return firstCRLFIndex + 2, Error{
+		ErrMsg: rawMsg[1:firstCRLFIndex],
 	}, nil
 }
 
@@ -50,13 +52,14 @@ type Integer struct {
 	Value int64
 }
 
-func NewInteger(rawMsg string) (Integer, error) {
-	numericString := rawMsg[1 : len(rawMsg)-2]
+func NewInteger(rawMsg string) (int, Integer, error) {
+	firstCRLFIndex := strings.Index(rawMsg, "\r\n")
+	numericString := rawMsg[1:firstCRLFIndex]
 	val, err := strconv.Atoi(numericString)
 	if err != nil {
-		return Integer{}, err
+		return 0, Integer{}, err
 	}
-	return Integer{
+	return firstCRLFIndex + 2, Integer{
 		Value: int64(val),
 	}, nil
 }
@@ -69,20 +72,21 @@ type BulkString struct {
 	Data string
 }
 
-func NewBulkString(rawMsg string) (BulkString, error) {
-	firstCRIndex := strings.IndexByte(rawMsg, '\r')
-	if firstCRIndex < 2 {
-		return BulkString{}, fmt.Errorf("invalid format for bulk string")
+func NewBulkString(rawMsg string) (int, BulkString, error) {
+	firstCRLFIndex := strings.Index(rawMsg, "\r\n")
+	if firstCRLFIndex < 2 {
+		return 0, BulkString{}, fmt.Errorf("invalid message format for bulk string")
 	}
 
-	strLen, err := strconv.Atoi(rawMsg[1:firstCRIndex])
+	strLen, err := strconv.Atoi(rawMsg[1:firstCRLFIndex])
 	if err != nil {
-		return BulkString{}, err
+		return 0, BulkString{}, err
 	}
 
-	dataStartIdx := firstCRIndex + 2
-	return BulkString{
-		Data: rawMsg[dataStartIdx : dataStartIdx+strLen],
+	dataStartIdx := firstCRLFIndex + 2
+	dataEndIdx := dataStartIdx + strLen
+	return dataEndIdx + 2, BulkString{
+		Data: rawMsg[dataStartIdx:dataEndIdx],
 	}, nil
 }
 
@@ -90,24 +94,67 @@ func (bs BulkString) ToDataString() string {
 	return fmt.Sprintf("%c%d\r\n%s\r\n", MSG_TYPE_BULK_STR, len(bs.Data), bs.Data)
 }
 
-func ProcessMessageString(msg string) (Message, error) {
-	if len(msg) <= 1 {
-		return nil, fmt.Errorf("received empty invalid message")
+type Array struct {
+	Elements []Message
+}
+
+func NewArray(rawMsg string) (int, Array, error) {
+	firstCRIndex := strings.IndexByte(rawMsg, '\r')
+	if firstCRIndex < 2 {
+		return 0, Array{}, fmt.Errorf("invalid message format for array")
 	}
 
+	numElements, err := strconv.Atoi(rawMsg[1:firstCRIndex])
+	if err != nil {
+		return 0, Array{}, err
+	}
+
+	charConsumedCount := firstCRIndex + 2
+	elements := []Message{}
+
+	for i := 0; i < numElements; i++ {
+		charsCount, msg, err := ProcessMessageString(rawMsg[charConsumedCount:])
+		if err != nil {
+			return 0, Array{}, err
+		}
+		charConsumedCount += charsCount
+		elements = append(elements, msg)
+	}
+
+	return charConsumedCount, Array{
+		Elements: elements,
+	}, nil
+}
+
+func (a Array) ToDataString() string {
+	out := fmt.Sprintf("%c%d\r\n", MSG_TYPE_ARRAY, len(a.Elements))
+	for _, elem := range a.Elements {
+		out += elem.ToDataString()
+	}
+	return out
+}
+
+func ProcessMessageString(msg string) (int, Message, error) {
+	if len(msg) <= 1 {
+		return 0, nil, fmt.Errorf("received empty invalid message")
+	}
+
+	var consumedCount int
 	var convertedMsg Message
 	var err error
 	switch msg[0] {
 	case MSG_TYPE_SIMPLE_STR:
-		convertedMsg, err = NewSimpleString(msg)
+		consumedCount, convertedMsg, err = NewSimpleString(msg)
 	case MSG_TYPE_ERROR:
-		convertedMsg, err = NewError(msg)
+		consumedCount, convertedMsg, err = NewError(msg)
 	case MSG_TYPE_INT:
-		convertedMsg, err = NewInteger(msg)
+		consumedCount, convertedMsg, err = NewInteger(msg)
 	case MSG_TYPE_BULK_STR:
-		convertedMsg, err = NewBulkString(msg)
+		consumedCount, convertedMsg, err = NewBulkString(msg)
+	case MSG_TYPE_ARRAY:
+		consumedCount, convertedMsg, err = NewArray(msg)
 	default:
 		err = fmt.Errorf("unsupported message discriminator")
 	}
-	return convertedMsg, err
+	return consumedCount, convertedMsg, err
 }
