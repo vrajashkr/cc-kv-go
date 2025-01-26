@@ -1,3 +1,5 @@
+ENTRYPOINT := "src/main.go"
+
 .PHONY: tidy build run
 
 tidy:
@@ -7,7 +9,10 @@ build:
 	@go build
 
 run:
-	@go run src/main.go
+	@go run $(ENTRYPOINT)
+
+run-race:
+	@go run -race ${ENTRYPOINT}
 
 test:
 	@go test ./...
