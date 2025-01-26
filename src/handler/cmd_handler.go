@@ -10,11 +10,12 @@ import (
 )
 
 const (
-	CMD_PING  = "PING"
-	CMD_HELLO = "HELLO"
-	CMD_ECHO  = "ECHO"
-	CMD_SET   = "SET"
-	CMD_GET   = "GET"
+	CMD_PING   = "PING"
+	CMD_HELLO  = "HELLO"
+	CMD_ECHO   = "ECHO"
+	CMD_SET    = "SET"
+	CMD_GET    = "GET"
+	CMD_CONFIG = "CONFIG"
 )
 
 var INVALID_CMD_FMT = data.Error{ErrMsg: "invalid format for command"}
@@ -112,6 +113,36 @@ func handleGet(cmd data.Array, strg storage.StorageEngine) data.Message {
 	return data.BulkString{Data: val}
 }
 
+// https://redis.io/docs/latest/commands/config-get/
+func handleConfig(cmdArray data.Array) data.Message {
+	if len(cmdArray.Elements) < 2 {
+		return INVALID_CMD_ARGS
+	}
+
+	subCommandHolder, ok := cmdArray.Elements[1].(data.BulkString)
+	if !ok {
+		return INVALID_CMD_ARGS
+	}
+
+	switch subCommandHolder.Data {
+	case "GET":
+		return data.Array{
+			Elements: []data.Message{
+				data.BulkString{Data: "maxmemory"},
+				data.BulkString{Data: "0"},
+				data.BulkString{Data: "save"},
+				data.BulkString{Data: ""},
+				data.BulkString{Data: "appendonly"},
+				data.BulkString{Data: "no"},
+			},
+		}
+	default:
+		return data.Error{
+			ErrMsg: fmt.Sprintf("unsupported subcommand %s for %s", subCommandHolder.Data, CMD_CONFIG),
+		}
+	}
+}
+
 func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 	cmdArray, ok := msg.(data.Array)
 	if !ok {
@@ -135,11 +166,13 @@ func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 		result = handleSet(cmdArray, strg)
 	case CMD_GET:
 		result = handleGet(cmdArray, strg)
+	case CMD_CONFIG:
+		result = handleConfig(cmdArray)
 	default:
 		result = data.Error{
 			ErrMsg: fmt.Sprintf("unsupported command %s", firstCmd.Data),
 		}
 	}
-
+	slog.Info(fmt.Sprintf("responding with %q", result.ToDataString()))
 	return result
 }

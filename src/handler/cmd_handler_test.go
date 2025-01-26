@@ -170,6 +170,46 @@ func TestHandleCommand(t *testing.T) {
 			},
 			data.BulkString{Data: "testVal"},
 		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "CONFIG"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "CONFIG"},
+					data.SimpleString{Contents: "GET"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "CONFIG"},
+					data.BulkString{Data: "GET"},
+				},
+			},
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "maxmemory"},
+					data.BulkString{Data: "0"},
+				},
+			},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "CONFIG"},
+					data.BulkString{Data: "NEXIST"},
+				},
+			},
+			data.Error{ErrMsg: "unsupported subcommand NEXIST for CONFIG"},
+		},
 	}
 
 	assert := assert.New(t)
