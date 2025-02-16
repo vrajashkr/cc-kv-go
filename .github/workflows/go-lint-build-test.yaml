@@ -1,0 +1,36 @@
+name: go lint build and test
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  code-check:
+    name: check code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Display Go version
+        run: go version
+      - name: Install dependencies
+        run: go mod download
+      - name: Golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          args: --timeout=3m
+      - name: Build code
+        run: |
+          make build
+          ls -l ./cc-kv-go
+      - name: Run unit tests
+        run: make test-race
