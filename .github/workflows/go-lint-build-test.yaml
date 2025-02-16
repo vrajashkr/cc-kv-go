@@ -33,4 +33,8 @@ jobs:
           make build
           ls -l ./cc-kv-go
       - name: Run unit tests
-        run: make test-race
+        run: make test-race-coverage
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
