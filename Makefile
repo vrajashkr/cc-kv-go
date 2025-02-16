@@ -1,12 +1,12 @@
 ENTRYPOINT := "src/main.go"
 
-.PHONY: tidy build run
+.PHONY: tidy build run run-race test test-race
 
 tidy:
 	@go mod tidy
 
 build:
-	@go build
+	@go build -o ./cc-kv-go ./src/main.go
 
 run:
 	@go run $(ENTRYPOINT)
