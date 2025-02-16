@@ -29,6 +29,8 @@ jobs:
         with:
           args: --timeout=3m
       - name: Build code
-        run: make build
+        run: |
+          make build
+          ls -l ./cc-kv-go
       - name: Run unit tests
         run: make test-race
