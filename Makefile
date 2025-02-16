@@ -1,12 +1,12 @@
 ENTRYPOINT := "src/main.go"
 
-.PHONY: tidy build run run-race test test-race
+.PHONY: tidy build run run-race test test-race test-race-coverage
 
 tidy:
 	@go mod tidy
 
 build:
-	@go build -o ./cc-kv-go ./src/main.go
+	@go build -o ./cc-kv-go $(ENTRYPOINT)
 
 run:
 	@go run $(ENTRYPOINT)
@@ -19,3 +19,6 @@ test:
 
 test-race:
 	@go test -race ./...
+
+test-race-coverage:
+	@go test -race -coverprofile=coverage.txt ./...
