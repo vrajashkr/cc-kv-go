@@ -65,7 +65,7 @@ func handleHello(cmd data.Array) data.Message {
 	}
 	versionRequested, err := strconv.Atoi(versionEntry.Data)
 	if err != nil {
-		slog.Error("invalid command args: " + err.Error())
+		slog.Error("invalid command args", "error", err.Error())
 		return INVALID_CMD_ARGS
 	}
 	if versionRequested != 2 {

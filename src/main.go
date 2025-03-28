@@ -23,15 +23,20 @@ func main() {
 	slog.Info("starting listener")
 	l, err := net.Listen("tcp4", ":6379")
 	if err != nil {
-		slog.Error("failed to start TCP server due to error: " + err.Error())
+		slog.Error("failed to start TCP server", "error", err.Error())
 		return
 	}
-	defer l.Close()
+	defer func() {
+		err := l.Close()
+		if err != nil {
+			slog.Error("failed to close listener", "error", err.Error())
+		}
+	}()
 
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			slog.Error("failed to accept connection due to error: " + err.Error())
+			slog.Error("failed to accept connection", "error", err.Error())
 			return
 		}
 		go handleConnection(conn, &storageEngine)
@@ -39,7 +44,12 @@ func main() {
 }
 
 func handleConnection(c net.Conn, storage storage.StorageEngine) {
-	defer c.Close()
+	defer func() {
+		err := c.Close()
+		if err != nil {
+			slog.Error("failed to close connection", "error", err.Error())
+		}
+	}()
 
 	reachedEnd := false
 	for {
@@ -49,7 +59,7 @@ func handleConnection(c net.Conn, storage storage.StorageEngine) {
 			numBytes, err := c.Read(tmp)
 			if err != nil {
 				if err != io.EOF {
-					slog.Error("error while processing request: " + err.Error())
+					slog.Error("error while processing request", "error", err.Error())
 				}
 				reachedEnd = true
 				break
@@ -59,7 +69,7 @@ func handleConnection(c net.Conn, storage storage.StorageEngine) {
 				result := handler.ServeInput(buf, storage)
 				_, err := c.Write([]byte(result))
 				if err != nil {
-					slog.Error("failed to respond to client due to error: " + err.Error())
+					slog.Error("failed to respond to client", "error", err.Error())
 				}
 				break
 			}
