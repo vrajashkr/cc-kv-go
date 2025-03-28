@@ -174,6 +174,17 @@ func TestHandleCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
+					data.BulkString{Data: "EXISTS"},
+					data.BulkString{Data: "testKey"},
+					data.BulkString{Data: "testNoKey"},
+					data.BulkString{Data: "testKey"},
+				},
+			},
+			data.Integer{Value: 2},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
 					data.BulkString{Data: "CONFIG"},
 				},
 			},

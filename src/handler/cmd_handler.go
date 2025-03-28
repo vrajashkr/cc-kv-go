@@ -21,6 +21,7 @@ const (
 	CMD_SET_OPT_PXAT = "PXAT"
 	CMD_GET          = "GET"
 	CMD_CONFIG       = "CONFIG"
+	CMD_EXISTS       = "EXISTS"
 )
 
 var (
@@ -167,6 +168,32 @@ func handleGet(cmd data.Array, strg storage.StorageEngine) data.Message {
 	return data.BulkString{Data: val}
 }
 
+// https://redis.io/docs/latest/commands/exists/
+func handleExists(cmd data.Array, strg storage.StorageEngine) data.Message {
+	cmdLen := len(cmd.Elements)
+	if cmdLen < 2 {
+		return INVALID_CMD_ARGS
+	}
+
+	keys := make([]string, cmdLen-1)
+
+	for idx := range cmdLen - 1 {
+		keyToCheck, ok := cmd.Elements[1+idx].(data.BulkString)
+		if !ok {
+			return INVALID_CMD_ARGS
+		}
+
+		keys[idx] = keyToCheck.Data
+	}
+
+	result, err := strg.Exists(keys)
+	if err != nil {
+		return data.Error{ErrMsg: "failed to execute exists. error: " + err.Error()}
+	}
+
+	return data.Integer{Value: int64(result)}
+}
+
 // https://redis.io/docs/latest/commands/config-get/
 func handleConfig(cmdArray data.Array) data.Message {
 	if len(cmdArray.Elements) < 2 {
@@ -222,6 +249,8 @@ func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 		result = handleGet(cmdArray, strg)
 	case CMD_CONFIG:
 		result = handleConfig(cmdArray)
+	case CMD_EXISTS:
+		result = handleExists(cmdArray, strg)
 	default:
 		result = data.Error{
 			ErrMsg: fmt.Sprintf("unsupported command %s", firstCmd.Data),
