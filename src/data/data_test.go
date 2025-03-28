@@ -236,17 +236,18 @@ func TestProcessMessageStringWithArray(t *testing.T) {
 		input string
 		want  []data.Message
 	}{
-		{"*3\r\n:1\r\n:2\r\n:3\r\n", []data.Message{
-			data.Integer{
-				Value: 1,
+		{
+			"*3\r\n:1\r\n:2\r\n:3\r\n", []data.Message{
+				data.Integer{
+					Value: 1,
+				},
+				data.Integer{
+					Value: 2,
+				},
+				data.Integer{
+					Value: 3,
+				},
 			},
-			data.Integer{
-				Value: 2,
-			},
-			data.Integer{
-				Value: 3,
-			},
-		},
 		},
 		{"*0\r\n", []data.Message{}},
 		{"*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n", []data.Message{
@@ -289,17 +290,18 @@ func TestArrayToDataString(t *testing.T) {
 		want  string
 		input []data.Message
 	}{
-		{"*3\r\n:1\r\n:2\r\n:3\r\n", []data.Message{
-			data.Integer{
-				Value: 1,
+		{
+			"*3\r\n:1\r\n:2\r\n:3\r\n", []data.Message{
+				data.Integer{
+					Value: 1,
+				},
+				data.Integer{
+					Value: 2,
+				},
+				data.Integer{
+					Value: 3,
+				},
 			},
-			data.Integer{
-				Value: 2,
-			},
-			data.Integer{
-				Value: 3,
-			},
-		},
 		},
 		{"*0\r\n", []data.Message{}},
 		{"*3\r\n$5\r\nhello\r\n$5\r\nworld\r\n:67\r\n", []data.Message{

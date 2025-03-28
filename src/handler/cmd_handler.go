@@ -4,23 +4,30 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"time"
 
 	"github.com/vrajashkr/cc-kv-go/src/data"
 	"github.com/vrajashkr/cc-kv-go/src/storage"
 )
 
 const (
-	CMD_PING   = "PING"
-	CMD_HELLO  = "HELLO"
-	CMD_ECHO   = "ECHO"
-	CMD_SET    = "SET"
-	CMD_GET    = "GET"
-	CMD_CONFIG = "CONFIG"
+	CMD_PING         = "PING"
+	CMD_HELLO        = "HELLO"
+	CMD_ECHO         = "ECHO"
+	CMD_SET          = "SET"
+	CMD_SET_OPT_EX   = "EX"
+	CMD_SET_OPT_EXAT = "EXAT"
+	CMD_SET_OPT_PX   = "PX"
+	CMD_SET_OPT_PXAT = "PXAT"
+	CMD_GET          = "GET"
+	CMD_CONFIG       = "CONFIG"
 )
 
-var INVALID_CMD_FMT = data.Error{ErrMsg: "invalid format for command"}
-var INVALID_CMD_ARGS = data.Error{ErrMsg: "invalid args for command"}
-var OK = data.SimpleString{Contents: "OK"}
+var (
+	INVALID_CMD_FMT  = data.Error{ErrMsg: "invalid format for command"}
+	INVALID_CMD_ARGS = data.Error{ErrMsg: "invalid args for command"}
+	OK               = data.SimpleString{Contents: "OK"}
+)
 
 // https://redis.io/docs/latest/commands/ping/
 func handlePing(cmd data.Array) data.Message {
@@ -69,7 +76,9 @@ func handleHello(cmd data.Array) data.Message {
 
 // https://redis.io/docs/latest/commands/set/
 func handleSet(cmd data.Array, strg storage.StorageEngine) data.Message {
-	if len(cmd.Elements) < 3 {
+	numArgs := len(cmd.Elements)
+
+	if numArgs < 3 {
 		return INVALID_CMD_ARGS
 	}
 
@@ -83,7 +92,52 @@ func handleSet(cmd data.Array, strg storage.StorageEngine) data.Message {
 		return INVALID_CMD_ARGS
 	}
 
-	err := strg.Set(keyHolder.Data, valueHolder.Data)
+	valueContents := valueHolder.Data
+	expires := false
+	var expiresAtTimeStampMillis int64 = -1
+
+	// if there are more args, 2 more are expected
+	if numArgs > 3 {
+		if numArgs != 5 {
+			return INVALID_CMD_ARGS
+		}
+
+		// handle command options
+		option, ok := cmd.Elements[3].(data.BulkString)
+		if !ok {
+			return INVALID_CMD_ARGS
+		}
+
+		optionArg := cmd.Elements[4].(data.BulkString)
+		if !ok {
+			return INVALID_CMD_ARGS
+		}
+
+		expires = true
+		optionTimeInt, err := strconv.ParseInt(optionArg.Data, 10, 64)
+		if err != nil {
+			return data.Error{ErrMsg: "failed to set due to error: " + err.Error()}
+		}
+
+		switch option.Data {
+		case CMD_SET_OPT_EX:
+			// expiry time in seconds
+			expiresAtTimeStampMillis = time.Now().UnixMilli() + (optionTimeInt * 1000)
+		case CMD_SET_OPT_PX:
+			// expiry time in milliseconds
+			expiresAtTimeStampMillis = time.Now().UnixMilli() + optionTimeInt
+		case CMD_SET_OPT_EXAT:
+			// expiry timestamp epoch in seconds
+			expiresAtTimeStampMillis = optionTimeInt * 1000
+		case CMD_SET_OPT_PXAT:
+			// expiry timestamp epoch in milliseconds
+			expiresAtTimeStampMillis = optionTimeInt
+		default:
+			return INVALID_CMD_FMT
+		}
+	}
+
+	err := strg.Set(keyHolder.Data, valueContents, expires, expiresAtTimeStampMillis)
 	if err != nil {
 		return data.Error{ErrMsg: "failed to store data due to error: " + err.Error()}
 	}

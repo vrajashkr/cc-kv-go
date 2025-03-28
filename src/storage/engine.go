@@ -1,27 +1,48 @@
 package storage
 
-import "sync"
+import (
+	"fmt"
+	"log/slog"
+	"sync"
+	"time"
+)
 
 type StorageEngine interface {
-	Set(key string, value string) error
+	Set(key string, value string, expires bool, expiresAtTimeStampMillis int64) error
 	Get(key string) (bool, string, error)
 }
 
+type DataContainer struct {
+	Data      string
+	Expires   bool
+	ExpiresAt time.Time
+}
+
 type MapStorageEngine struct {
-	store map[string]string
+	store map[string]DataContainer
 	mu    sync.Mutex
 }
 
 func NewMapStorageEngine() MapStorageEngine {
 	return MapStorageEngine{
-		store: make(map[string]string),
+		store: make(map[string]DataContainer),
 	}
 }
 
-func (mse *MapStorageEngine) Set(key string, value string) error {
+func (mse *MapStorageEngine) Set(key string, value string, expires bool, expiresAtTimeStampMillis int64) error {
 	mse.mu.Lock()
 	defer mse.mu.Unlock()
-	mse.store[key] = value
+	expiryTime := time.Now()
+	slog.Info(fmt.Sprintf("current time: %d expiresAt: %d", expiryTime.UnixMilli(), expiresAtTimeStampMillis))
+	if expires {
+		expiryTime = time.UnixMilli(expiresAtTimeStampMillis)
+	}
+
+	mse.store[key] = DataContainer{
+		Data:      value,
+		Expires:   expires,
+		ExpiresAt: expiryTime,
+	}
 	return nil
 }
 
@@ -32,5 +53,12 @@ func (mse *MapStorageEngine) Get(key string) (bool, string, error) {
 	if !ok {
 		return false, "", nil
 	}
-	return true, result, nil
+
+	if result.Expires && time.Since(result.ExpiresAt).Milliseconds() >= 0 {
+		// entry has expired, delete from map
+		delete(mse.store, key)
+		return false, "", nil
+	}
+
+	return true, result.Data, nil
 }

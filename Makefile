@@ -1,6 +1,6 @@
 ENTRYPOINT := "src/main.go"
 
-.PHONY: tidy build run run-race test test-race test-race-coverage
+.PHONY: tidy build run run-race test test-race test-race-coverage lint format
 
 tidy:
 	@go mod tidy
@@ -22,3 +22,10 @@ test-race:
 
 test-race-coverage:
 	@go test -race -coverprofile=coverage.txt ./...
+
+lint:
+	@golangci-lint run
+
+format:
+	@gofumpt -l -w .
+
