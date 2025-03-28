@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"fmt"
-	"log/slog"
 	"sync"
 	"time"
 )
@@ -33,7 +31,6 @@ func (mse *MapStorageEngine) Set(key string, value string, expires bool, expires
 	mse.mu.Lock()
 	defer mse.mu.Unlock()
 	expiryTime := time.Now()
-	slog.Info(fmt.Sprintf("current time: %d expiresAt: %d", expiryTime.UnixMilli(), expiresAtTimeStampMillis))
 	if expires {
 		expiryTime = time.UnixMilli(expiresAtTimeStampMillis)
 	}
