@@ -19,9 +19,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
-      - name: Display Go version
-        run: go version
+          go-version: '1.24'
       - name: Install dependencies
         run: go mod download
       - name: Golangci-lint
