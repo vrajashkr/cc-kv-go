@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"fmt"
-	"log/slog"
 	"sync"
 	"time"
 )
@@ -10,6 +8,7 @@ import (
 type StorageEngine interface {
 	Set(key string, value string, expires bool, expiresAtTimeStampMillis int64) error
 	Get(key string) (bool, string, error)
+	Exists(key []string) (int, error)
 }
 
 type DataContainer struct {
@@ -33,7 +32,6 @@ func (mse *MapStorageEngine) Set(key string, value string, expires bool, expires
 	mse.mu.Lock()
 	defer mse.mu.Unlock()
 	expiryTime := time.Now()
-	slog.Info(fmt.Sprintf("current time: %d expiresAt: %d", expiryTime.UnixMilli(), expiresAtTimeStampMillis))
 	if expires {
 		expiryTime = time.UnixMilli(expiresAtTimeStampMillis)
 	}
@@ -61,4 +59,20 @@ func (mse *MapStorageEngine) Get(key string) (bool, string, error) {
 	}
 
 	return true, result.Data, nil
+}
+
+func (mse *MapStorageEngine) Exists(keys []string) (int, error) {
+	mse.mu.Lock()
+	defer mse.mu.Unlock()
+
+	presentCount := 0
+
+	for _, key := range keys {
+		_, ok := mse.store[key]
+		if ok {
+			presentCount += 1
+		}
+	}
+
+	return presentCount, nil
 }
