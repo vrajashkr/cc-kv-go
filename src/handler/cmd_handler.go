@@ -23,6 +23,8 @@ const (
 	CMD_CONFIG       = "CONFIG"
 	CMD_EXISTS       = "EXISTS"
 	CMD_DELETE       = "DEL"
+	CMD_INCR         = "INCR"
+	CMD_DECR         = "DECR"
 )
 
 var (
@@ -221,6 +223,48 @@ func handleDelete(cmd data.Array, strg storage.StorageEngine) data.Message {
 	return data.Integer{Value: int64(result)}
 }
 
+// https://redis.io/docs/latest/commands/incr/
+func handleIncr(cmdArray data.Array, strg storage.StorageEngine) data.Message {
+	cmdLen := len(cmdArray.Elements)
+	if cmdLen < 2 {
+		return INVALID_CMD_ARGS
+	}
+
+	key, ok := cmdArray.Elements[1].(data.BulkString)
+	if !ok {
+		return INVALID_CMD_ARGS
+	}
+
+	res, err := strg.AtomicDelta(key.Data, 1)
+	if err != nil {
+		slog.Error("failed to execute increment", "error", err.Error())
+		return data.Error{ErrMsg: "value is not an integer or out of range"}
+	}
+
+	return data.Integer{Value: res}
+}
+
+// https://redis.io/docs/latest/commands/decr/
+func handleDecr(cmdArray data.Array, strg storage.StorageEngine) data.Message {
+	cmdLen := len(cmdArray.Elements)
+	if cmdLen < 2 {
+		return INVALID_CMD_ARGS
+	}
+
+	key, ok := cmdArray.Elements[1].(data.BulkString)
+	if !ok {
+		return INVALID_CMD_ARGS
+	}
+
+	res, err := strg.AtomicDelta(key.Data, -1)
+	if err != nil {
+		slog.Error("failed to execute decrement", "error", err.Error())
+		return data.Error{ErrMsg: "value is not an integer or out of range"}
+	}
+
+	return data.Integer{Value: res}
+}
+
 // https://redis.io/docs/latest/commands/config-get/
 func handleConfig(cmdArray data.Array) data.Message {
 	if len(cmdArray.Elements) < 2 {
@@ -280,6 +324,10 @@ func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 		result = handleExists(cmdArray, strg)
 	case CMD_DELETE:
 		result = handleDelete(cmdArray, strg)
+	case CMD_INCR:
+		result = handleIncr(cmdArray, strg)
+	case CMD_DECR:
+		result = handleDecr(cmdArray, strg)
 	default:
 		result = data.Error{
 			ErrMsg: fmt.Sprintf("unsupported command %s", firstCmd.Data),
