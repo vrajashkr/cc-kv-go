@@ -230,6 +230,104 @@ func TestHandleCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
+					data.BulkString{Data: "INCR"},
+					data.BulkString{Data: "ictr"},
+				},
+			},
+			data.Integer{Value: 1},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "DECR"},
+					data.BulkString{Data: "dctr"},
+				},
+			},
+			data.Integer{Value: -1},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "INCR"},
+					data.BulkString{Data: "ictr"},
+				},
+			},
+			data.Integer{Value: 2},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "DECR"},
+					data.BulkString{Data: "dctr"},
+				},
+			},
+			data.Integer{Value: -2},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "SET"},
+					data.BulkString{Data: "nanCtr"},
+					data.BulkString{Data: "testVal"},
+				},
+			},
+			data.SimpleString{Contents: "OK"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "INCR"},
+					data.BulkString{Data: "nanCtr"},
+				},
+			},
+			data.Error{ErrMsg: "value is not an integer or out of range"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "DECR"},
+					data.BulkString{Data: "nanCtr"},
+				},
+			},
+			data.Error{ErrMsg: "value is not an integer or out of range"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "INCR"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "DECR"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "INCR"},
+					data.SimpleString{Contents: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "DECR"},
+					data.SimpleString{Contents: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
 					data.BulkString{Data: "CONFIG"},
 				},
 			},

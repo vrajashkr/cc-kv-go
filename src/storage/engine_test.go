@@ -17,6 +17,9 @@ func TestMapStorageEngine(t *testing.T) {
 	err := mse.Set("hello", "world", false, 10202)
 	require.Nil(err)
 
+	err = mse.Set("fakecounter", "world", false, 10202)
+	require.Nil(err)
+
 	ok, val, err := mse.Get("hello")
 	assert.Nil(err)
 	assert.True(ok)
@@ -34,6 +37,21 @@ func TestMapStorageEngine(t *testing.T) {
 	res, err = mse.Delete([]string{"hello", "absent"})
 	assert.Nil(err)
 	assert.Equal(1, res)
+
+	deltaResult, err := mse.AtomicDelta("ctr1", 1)
+	assert.Nil(err)
+	assert.Equal(int64(1), deltaResult)
+
+	deltaResult, err = mse.AtomicDelta("ctr2", -2)
+	assert.Nil(err)
+	assert.Equal(int64(-2), deltaResult)
+
+	deltaResult, err = mse.AtomicDelta("ctr1", 2)
+	assert.Nil(err)
+	assert.Equal(int64(3), deltaResult)
+
+	_, err = mse.AtomicDelta("fakecounter", 1)
+	assert.NotNil(err)
 
 	err = mse.Set("timing", "result", true, time.Now().UnixMilli()+5)
 	require.Nil(err)

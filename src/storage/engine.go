@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"fmt"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -10,6 +12,7 @@ type StorageEngine interface {
 	Get(key string) (bool, string, error)
 	Exists(keys []string) (int, error)
 	Delete(keys []string) (int, error)
+	AtomicDelta(key string, delta int64) (int64, error)
 }
 
 type DataContainer struct {
@@ -91,4 +94,28 @@ func (mse *MapStorageEngine) Delete(keys []string) (int, error) {
 	}
 
 	return deletedCount, nil
+}
+
+func (mse *MapStorageEngine) AtomicDelta(key string, delta int64) (int64, error) {
+	mse.mu.Lock()
+	defer mse.mu.Unlock()
+
+	valCtr, ok := mse.store[key]
+	if !ok {
+		// counter doesn't exist yet, forcefully set it to the delta value and return the same
+		mse.store[key] = DataContainer{Data: fmt.Sprintf("%d", delta), Expires: false, ExpiresAt: time.Now()}
+		return delta, nil
+	}
+
+	// counter exists already
+	counterIntVal, err := strconv.ParseInt(valCtr.Data, 10, 64)
+	if err != nil {
+		return -1, err
+	}
+
+	// delta the value and set it
+	counterIntVal += delta
+	mse.store[key] = DataContainer{Data: fmt.Sprintf("%d", counterIntVal), Expires: false, ExpiresAt: time.Now()}
+
+	return counterIntVal, nil
 }
