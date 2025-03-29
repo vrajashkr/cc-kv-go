@@ -20,10 +20,17 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.24'
+      - name: Install gofumpt
+        run: go install mvdan.cc/gofumpt@latest
+      - name: Run format checks
+        run: |
+          unformatted_files=$(gofumpt -l .)
+          echo $unformatted_files
+          [ -z "$unformatted_files" ]
       - name: Install dependencies
         run: go mod download
       - name: Golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
           args: --timeout=3m
       - name: Build code
