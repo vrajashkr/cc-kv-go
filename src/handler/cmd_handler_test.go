@@ -310,6 +310,24 @@ func TestHandleCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
+					data.BulkString{Data: "INCR"},
+					data.SimpleString{Contents: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "DECR"},
+					data.SimpleString{Contents: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
 					data.BulkString{Data: "CONFIG"},
 				},
 			},
