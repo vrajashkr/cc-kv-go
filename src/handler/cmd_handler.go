@@ -25,6 +25,8 @@ const (
 	CMD_DELETE       = "DEL"
 	CMD_INCR         = "INCR"
 	CMD_DECR         = "DECR"
+	CMD_LPUSH        = "LPUSH"
+	CMD_RPUSH        = "RPUSH"
 )
 
 var (
@@ -265,6 +267,40 @@ func handleDecr(cmdArray data.Array, strg storage.StorageEngine) data.Message {
 	return data.Integer{Value: res}
 }
 
+// https://redis.io/docs/latest/commands/lpush/
+// https://redis.io/docs/latest/commands/rpush/
+func handleListPush(cmdArray data.Array, strg storage.StorageEngine, isPrepend bool) data.Message {
+	cmdLen := len(cmdArray.Elements)
+	if cmdLen < 3 {
+		return INVALID_CMD_ARGS
+	}
+
+	listToUpdate, ok := cmdArray.Elements[1].(data.BulkString)
+	if !ok {
+		return INVALID_CMD_ARGS
+	}
+
+	listNameToUpdate := listToUpdate.Data
+
+	listValues := make([]string, cmdLen-2)
+
+	for idx := range cmdLen - 2 {
+		keyToCheck, ok := cmdArray.Elements[2+idx].(data.BulkString)
+		if !ok {
+			return INVALID_CMD_ARGS
+		}
+
+		listValues[idx] = keyToCheck.Data
+	}
+
+	res, err := strg.ListPush(listNameToUpdate, listValues, isPrepend)
+	if err != nil {
+		return data.Error{ErrMsg: "command failed. error: " + err.Error()}
+	}
+
+	return data.Integer{Value: res}
+}
+
 // https://redis.io/docs/latest/commands/config-get/
 func handleConfig(cmdArray data.Array) data.Message {
 	if len(cmdArray.Elements) < 2 {
@@ -328,6 +364,10 @@ func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 		result = handleIncr(cmdArray, strg)
 	case CMD_DECR:
 		result = handleDecr(cmdArray, strg)
+	case CMD_LPUSH:
+		result = handleListPush(cmdArray, strg, true)
+	case CMD_RPUSH:
+		result = handleListPush(cmdArray, strg, false)
 	default:
 		result = data.Error{
 			ErrMsg: fmt.Sprintf("unsupported command %s", firstCmd.Data),

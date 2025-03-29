@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -13,6 +14,7 @@ type StorageEngine interface {
 	Exists(keys []string) (int, error)
 	Delete(keys []string) (int, error)
 	AtomicDelta(key string, delta int64) (int64, error)
+	ListPush(key string, values []string, isPrepend bool) (int64, error)
 }
 
 type DataContainer struct {
@@ -118,4 +120,51 @@ func (mse *MapStorageEngine) AtomicDelta(key string, delta int64) (int64, error)
 	mse.store[key] = DataContainer{Data: fmt.Sprintf("%d", counterIntVal), Expires: false, ExpiresAt: time.Now()}
 
 	return counterIntVal, nil
+}
+
+func (mse *MapStorageEngine) ListPush(key string, values []string, isPrepend bool) (int64, error) {
+	mse.mu.Lock()
+	defer mse.mu.Unlock()
+
+	numNewValues := len(values)
+
+	data, ok := mse.store[key]
+	if !ok {
+		// key doesn't exist, fresh list creation
+		valToStore := ""
+		if !isPrepend {
+			// values are in the right order
+			// use tab as a delimiter for contents (tsv format)
+			valToStore = strings.Join(values, "\t")
+		} else {
+			for i := numNewValues - 1; i >= 0; i-- {
+				valToStore += values[i] + "\t"
+			}
+
+			// remove final tab
+			valToStore = valToStore[:len(valToStore)-1]
+		}
+		mse.store[key] = DataContainer{Data: valToStore, Expires: false, ExpiresAt: time.Now()}
+
+		return int64(numNewValues), nil
+	}
+
+	// list is already present
+	listContents := data.Data
+
+	if !isPrepend {
+		// directly append to end of list
+		listContents += "\t" + strings.Join(values, "\t")
+	} else {
+		// get values in the right order and add to start of list
+		newContents := ""
+		for i := numNewValues - 1; i >= 0; i-- {
+			newContents += values[i] + "\t"
+		}
+		listContents = newContents + listContents
+	}
+
+	mse.store[key] = DataContainer{Data: listContents, Expires: false, ExpiresAt: time.Now()}
+
+	return int64(numNewValues), nil
 }
