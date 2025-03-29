@@ -22,6 +22,7 @@ const (
 	CMD_GET          = "GET"
 	CMD_CONFIG       = "CONFIG"
 	CMD_EXISTS       = "EXISTS"
+	CMD_DELETE       = "DEL"
 )
 
 var (
@@ -194,6 +195,32 @@ func handleExists(cmd data.Array, strg storage.StorageEngine) data.Message {
 	return data.Integer{Value: int64(result)}
 }
 
+// https://redis.io/docs/latest/commands/del/
+func handleDelete(cmd data.Array, strg storage.StorageEngine) data.Message {
+	cmdLen := len(cmd.Elements)
+	if cmdLen < 2 {
+		return INVALID_CMD_ARGS
+	}
+
+	keys := make([]string, cmdLen-1)
+
+	for idx := range cmdLen - 1 {
+		keyToCheck, ok := cmd.Elements[1+idx].(data.BulkString)
+		if !ok {
+			return INVALID_CMD_ARGS
+		}
+
+		keys[idx] = keyToCheck.Data
+	}
+
+	result, err := strg.Delete(keys)
+	if err != nil {
+		return data.Error{ErrMsg: "failed to execute delete. error: " + err.Error()}
+	}
+
+	return data.Integer{Value: int64(result)}
+}
+
 // https://redis.io/docs/latest/commands/config-get/
 func handleConfig(cmdArray data.Array) data.Message {
 	if len(cmdArray.Elements) < 2 {
@@ -251,6 +278,8 @@ func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 		result = handleConfig(cmdArray)
 	case CMD_EXISTS:
 		result = handleExists(cmdArray, strg)
+	case CMD_DELETE:
+		result = handleDelete(cmdArray, strg)
 	default:
 		result = data.Error{
 			ErrMsg: fmt.Sprintf("unsupported command %s", firstCmd.Data),

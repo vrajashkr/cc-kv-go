@@ -202,6 +202,25 @@ func TestHandleCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
+					data.BulkString{Data: "DEL"},
+					data.BulkString{Data: "testKey"},
+					data.BulkString{Data: "testNoKey"},
+					data.BulkString{Data: "testKey"},
+				},
+			},
+			data.Integer{Value: 1},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "DEL"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
 					data.BulkString{Data: "CONFIG"},
 				},
 			},

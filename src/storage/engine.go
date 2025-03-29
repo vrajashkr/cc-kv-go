@@ -8,7 +8,8 @@ import (
 type StorageEngine interface {
 	Set(key string, value string, expires bool, expiresAtTimeStampMillis int64) error
 	Get(key string) (bool, string, error)
-	Exists(key []string) (int, error)
+	Exists(keys []string) (int, error)
+	Delete(keys []string) (int, error)
 }
 
 type DataContainer struct {
@@ -75,4 +76,19 @@ func (mse *MapStorageEngine) Exists(keys []string) (int, error) {
 	}
 
 	return presentCount, nil
+}
+
+func (mse *MapStorageEngine) Delete(keys []string) (int, error) {
+	mse.mu.Lock()
+	defer mse.mu.Unlock()
+
+	deletedCount := 0
+	for _, key := range keys {
+		if _, ok := mse.store[key]; ok {
+			delete(mse.store, key)
+			deletedCount += 1
+		}
+	}
+
+	return deletedCount, nil
 }

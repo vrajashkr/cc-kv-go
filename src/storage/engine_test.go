@@ -31,6 +31,10 @@ func TestMapStorageEngine(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(2, res)
 
+	res, err = mse.Delete([]string{"hello", "absent"})
+	assert.Nil(err)
+	assert.Equal(1, res)
+
 	err = mse.Set("timing", "result", true, time.Now().UnixMilli()+5)
 	require.Nil(err)
 
