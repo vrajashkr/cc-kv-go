@@ -328,6 +328,113 @@ func TestHandleCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
+					data.BulkString{Data: "LPUSH"},
+					data.BulkString{Data: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "LPUSH"},
+					data.BulkString{Data: "samplelist"},
+					data.SimpleString{Contents: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "LPUSH"},
+					data.SimpleString{Contents: "samplelist"},
+					data.BulkString{Data: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "RPUSH"},
+					data.BulkString{Data: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "RPUSH"},
+					data.SimpleString{Contents: "samplelist"},
+					data.BulkString{Data: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "RPUSH"},
+					data.BulkString{Data: "samplelist"},
+					data.SimpleString{Contents: "ctr1"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "LPUSH"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "RPUSH"},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "LPUSH"},
+					data.BulkString{Data: "mylist"},
+					data.BulkString{Data: "key1"},
+					data.BulkString{Data: "key2"},
+				},
+			},
+			data.Integer{Value: 2},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "RPUSH"},
+					data.BulkString{Data: "mylist"},
+					data.BulkString{Data: "key1"},
+					data.BulkString{Data: "key2"},
+				},
+			},
+			data.Integer{Value: 2},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "LPUSH"},
+					data.BulkString{Data: "mylist"},
+					data.BulkString{Data: "key1"},
+					data.BulkString{Data: "key2"},
+				},
+			},
+			data.Integer{Value: 2},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
 					data.BulkString{Data: "CONFIG"},
 				},
 			},
