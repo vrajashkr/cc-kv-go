@@ -221,6 +221,15 @@ func TestHandleCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
+					data.BulkString{Data: "DEL"},
+					data.Integer{Value: 12},
+				},
+			},
+			data.Error{ErrMsg: "invalid args for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
 					data.BulkString{Data: "CONFIG"},
 				},
 			},
