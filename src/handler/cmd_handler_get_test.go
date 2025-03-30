@@ -9,7 +9,7 @@ import (
 	"github.com/vrajashkr/cc-kv-go/src/storage"
 )
 
-func TestHandleCommand(t *testing.T) {
+func TestHandleGetCommand(t *testing.T) {
 	storageEngine := storage.NewMapStorageEngine()
 
 	testCases := []struct {
@@ -17,39 +17,37 @@ func TestHandleCommand(t *testing.T) {
 		want  data.Message
 	}{
 		{
-			data.SimpleString{Contents: "test"},
-			data.Error{ErrMsg: "invalid format for command"},
-		},
-		{
 			data.Array{
 				Elements: []data.Message{
-					data.SimpleString{Contents: "test"},
+					data.BulkString{Data: "GET"},
 				},
 			},
-			data.Error{ErrMsg: "invalid format for command"},
+			data.Error{ErrMsg: "invalid args for command"},
 		},
 		{
 			data.Array{
 				Elements: []data.Message{
-					data.BulkString{Data: "UNSUPPORTED"},
+					data.BulkString{Data: "GET"},
+					data.Integer{Value: 1},
 				},
 			},
-			data.Error{ErrMsg: "unsupported command UNSUPPORTED"},
+			data.Error{ErrMsg: "invalid args for command"},
 		},
 		{
 			data.Array{
 				Elements: []data.Message{
-					data.BulkString{Data: "HELLO"},
-					data.BulkString{Data: "3"},
+					data.BulkString{Data: "GET"},
+					data.BulkString{Data: "testKey"},
 				},
 			},
-			data.Error{ErrMsg: "NOPROTO sorry, this protocol version is not supported"},
+			data.Null{},
 		},
 		{
 			data.Array{
 				Elements: []data.Message{
-					data.BulkString{Data: "HELLO"},
-					data.BulkString{Data: "2"},
+					data.BulkString{Data: "SET"},
+					data.BulkString{Data: "testKey"},
+					data.BulkString{Data: "testVal"},
 				},
 			},
 			data.SimpleString{Contents: "OK"},
@@ -57,11 +55,11 @@ func TestHandleCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
-					data.BulkString{Data: "HELLO"},
-					data.BulkString{Data: "nan"},
+					data.BulkString{Data: "GET"},
+					data.BulkString{Data: "testKey"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.BulkString{Data: "testVal"},
 		},
 	}
 
