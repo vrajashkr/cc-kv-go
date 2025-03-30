@@ -55,6 +55,31 @@ func TestHandleSetCommand(t *testing.T) {
 			},
 			data.SimpleString{Contents: "OK"},
 		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "SET"},
+					data.BulkString{Data: "testKey"},
+					data.BulkString{Data: "testVal"},
+					data.BulkString{Data: "testVal"},
+					data.BulkString{Data: "testVal"},
+					data.BulkString{Data: "testVal"},
+				},
+			},
+			data.Error{ErrMsg: "wrong number of arguments for 'set' command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "SET"},
+					data.BulkString{Data: "testKey"},
+					data.BulkString{Data: "testVal"},
+					data.BulkString{Data: "VC"},
+					data.BulkString{Data: "1"},
+				},
+			},
+			data.Error{ErrMsg: "syntax error"},
+		},
 	}
 
 	assert := assert.New(t)
