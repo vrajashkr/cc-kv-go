@@ -10,15 +10,7 @@ import (
 // https://redis.io/docs/latest/commands/incr/
 // https://redis.io/docs/latest/commands/decr/
 func handleAtomicUnitDelta(cmdArray data.Array, strg storage.StorageEngine, isDecrement bool) data.Message {
-	cmdLen := len(cmdArray.Elements)
-	if cmdLen < 2 {
-		return INVALID_CMD_ARGS
-	}
-
-	key, ok := cmdArray.Elements[1].(data.BulkString)
-	if !ok {
-		return INVALID_CMD_ARGS
-	}
+	key := cmdArray.Elements[1].(data.BulkString)
 
 	delta := int64(1)
 	if isDecrement {

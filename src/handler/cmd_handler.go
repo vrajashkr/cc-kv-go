@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"log/slog"
+	"strings"
 
 	"github.com/vrajashkr/cc-kv-go/src/data"
 	"github.com/vrajashkr/cc-kv-go/src/storage"
@@ -33,6 +33,42 @@ var (
 	OK               = data.SimpleString{Contents: "OK"}
 )
 
+// for commands that have a minimum arg count, an entry is added to this map.
+// if there is no entry for that command, it is assumed that there is no minimum argument count for it.
+var CMD_MIN_ARGS = map[string]int{
+	CMD_INCR:   1,
+	CMD_DECR:   1,
+	CMD_CONFIG: 1,
+	CMD_DELETE: 1,
+	CMD_ECHO:   1,
+	CMD_EXISTS: 1,
+	CMD_GET:    1,
+	CMD_LPUSH:  2,
+	CMD_RPUSH:  2,
+	CMD_SET:    2,
+}
+
+func validateCommand(cmd data.Array) error {
+	// check that all the entries are BulkString
+	for _, element := range cmd.Elements {
+		_, ok := element.(data.BulkString)
+		if !ok {
+			return fmt.Errorf("invalid format for command")
+		}
+	}
+
+	command := cmd.Elements[0].(data.BulkString).Data
+
+	// check that the command has the correct minimum number of args
+	numArgs := CMD_MIN_ARGS[command]
+
+	if len(cmd.Elements) < numArgs+1 {
+		return fmt.Errorf("wrong number of arguments for '%s' command", strings.ToLower(command))
+	}
+
+	return nil
+}
+
 func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 	cmdArray, ok := msg.(data.Array)
 	if !ok {
@@ -42,6 +78,11 @@ func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 	firstCmd, ok := cmdArray.Elements[0].(data.BulkString)
 	if !ok {
 		return INVALID_CMD_FMT
+	}
+
+	err := validateCommand(cmdArray)
+	if err != nil {
+		return data.Error{ErrMsg: err.Error()}
 	}
 
 	var result data.Message
@@ -75,6 +116,5 @@ func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 			ErrMsg: fmt.Sprintf("unsupported command %s", firstCmd.Data),
 		}
 	}
-	slog.Info(fmt.Sprintf("responding with %q", result.ToDataString()))
 	return result
 }

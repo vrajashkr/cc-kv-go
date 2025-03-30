@@ -22,7 +22,7 @@ func TestHandleDelCommand(t *testing.T) {
 					data.BulkString{Data: "DEL"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'del' command"},
 		},
 		{
 			data.Array{
@@ -31,7 +31,7 @@ func TestHandleDelCommand(t *testing.T) {
 					data.Integer{Value: 12},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 		{
 			data.Array{

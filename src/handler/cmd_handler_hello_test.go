@@ -9,7 +9,7 @@ import (
 	"github.com/vrajashkr/cc-kv-go/src/storage"
 )
 
-func TestHandleExistsCommand(t *testing.T) {
+func TestHandleHelloCommand(t *testing.T) {
 	storageEngine := storage.NewMapStorageEngine()
 
 	testCases := []struct {
@@ -19,26 +19,17 @@ func TestHandleExistsCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
-					data.BulkString{Data: "EXISTS"},
+					data.BulkString{Data: "HELLO"},
+					data.BulkString{Data: "3"},
 				},
 			},
-			data.Error{ErrMsg: "wrong number of arguments for 'exists' command"},
+			data.Error{ErrMsg: "NOPROTO sorry, this protocol version is not supported"},
 		},
 		{
 			data.Array{
 				Elements: []data.Message{
-					data.BulkString{Data: "EXISTS"},
-					data.Integer{Value: 12},
-				},
-			},
-			data.Error{ErrMsg: "invalid format for command"},
-		},
-		{
-			data.Array{
-				Elements: []data.Message{
-					data.BulkString{Data: "SET"},
-					data.BulkString{Data: "testKey"},
-					data.BulkString{Data: "testVal"},
+					data.BulkString{Data: "HELLO"},
+					data.BulkString{Data: "2"},
 				},
 			},
 			data.SimpleString{Contents: "OK"},
@@ -46,13 +37,11 @@ func TestHandleExistsCommand(t *testing.T) {
 		{
 			data.Array{
 				Elements: []data.Message{
-					data.BulkString{Data: "EXISTS"},
-					data.BulkString{Data: "testKey"},
-					data.BulkString{Data: "testNoKey"},
-					data.BulkString{Data: "testKey"},
+					data.BulkString{Data: "HELLO"},
+					data.BulkString{Data: "nan"},
 				},
 			},
-			data.Integer{Value: 2},
+			data.Error{ErrMsg: "invalid args for command"},
 		},
 	}
 

@@ -11,20 +11,8 @@ import (
 // https://redis.io/docs/latest/commands/set/
 func handleSet(cmd data.Array, strg storage.StorageEngine) data.Message {
 	numArgs := len(cmd.Elements)
-
-	if numArgs < 3 {
-		return INVALID_CMD_ARGS
-	}
-
-	keyHolder, ok := cmd.Elements[1].(data.BulkString)
-	if !ok {
-		return INVALID_CMD_ARGS
-	}
-
-	valueHolder, ok := cmd.Elements[2].(data.BulkString)
-	if !ok {
-		return INVALID_CMD_ARGS
-	}
+	keyHolder := cmd.Elements[1].(data.BulkString)
+	valueHolder := cmd.Elements[2].(data.BulkString)
 
 	valueContents := valueHolder.Data
 	expires := false

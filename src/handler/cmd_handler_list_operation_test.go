@@ -23,7 +23,7 @@ func TestHandleListOperationCommands(t *testing.T) {
 					data.BulkString{Data: "ctr1"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'lpush' command"},
 		},
 		{
 			data.Array{
@@ -33,7 +33,7 @@ func TestHandleListOperationCommands(t *testing.T) {
 					data.SimpleString{Contents: "ctr1"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 		{
 			data.Array{
@@ -43,7 +43,7 @@ func TestHandleListOperationCommands(t *testing.T) {
 					data.BulkString{Data: "ctr1"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 		{
 			data.Array{
@@ -52,7 +52,7 @@ func TestHandleListOperationCommands(t *testing.T) {
 					data.BulkString{Data: "ctr1"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'rpush' command"},
 		},
 		{
 			data.Array{
@@ -62,7 +62,7 @@ func TestHandleListOperationCommands(t *testing.T) {
 					data.BulkString{Data: "ctr1"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 		{
 			data.Array{
@@ -72,7 +72,7 @@ func TestHandleListOperationCommands(t *testing.T) {
 					data.SimpleString{Contents: "ctr1"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 		{
 			data.Array{
@@ -80,7 +80,7 @@ func TestHandleListOperationCommands(t *testing.T) {
 					data.BulkString{Data: "LPUSH"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'lpush' command"},
 		},
 		{
 			data.Array{
@@ -88,7 +88,7 @@ func TestHandleListOperationCommands(t *testing.T) {
 					data.BulkString{Data: "RPUSH"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'rpush' command"},
 		},
 		{
 			data.Array{

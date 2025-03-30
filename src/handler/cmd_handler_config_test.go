@@ -22,7 +22,7 @@ func TestHandleConfigCommand(t *testing.T) {
 					data.BulkString{Data: "CONFIG"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'config' command"},
 		},
 		{
 			data.Array{
@@ -31,7 +31,7 @@ func TestHandleConfigCommand(t *testing.T) {
 					data.SimpleString{Contents: "GET"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 		{
 			data.Array{

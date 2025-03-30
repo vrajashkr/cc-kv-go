@@ -33,6 +33,15 @@ func TestHandlePingCommand(t *testing.T) {
 			},
 			data.BulkString{Data: "hello world"},
 		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "PING"},
+					data.SimpleString{Contents: "hello world"},
+				},
+			},
+			data.Error{ErrMsg: "invalid format for command"},
+		},
 	}
 
 	assert := assert.New(t)

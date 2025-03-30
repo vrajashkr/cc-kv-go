@@ -10,9 +10,5 @@ func handlePing(cmd data.Array) data.Message {
 		return data.SimpleString{Contents: "PONG"}
 	}
 
-	incomingContents, ok := cmd.Elements[1].(data.BulkString)
-	if !ok {
-		return INVALID_CMD_ARGS
-	}
-	return incomingContents
+	return cmd.Elements[1].(data.BulkString)
 }
