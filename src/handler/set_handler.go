@@ -21,19 +21,12 @@ func handleSet(cmd data.Array, strg storage.StorageEngine) data.Message {
 	// if there are more args, 2 more are expected
 	if numArgs > 3 {
 		if numArgs != 5 {
-			return INVALID_CMD_ARGS
+			return data.Error{ErrMsg: "wrong number of arguments for 'set' command"}
 		}
 
 		// handle command options
-		option, ok := cmd.Elements[3].(data.BulkString)
-		if !ok {
-			return INVALID_CMD_ARGS
-		}
-
+		option := cmd.Elements[3].(data.BulkString)
 		optionArg := cmd.Elements[4].(data.BulkString)
-		if !ok {
-			return INVALID_CMD_ARGS
-		}
 
 		expires = true
 		optionTimeInt, err := strconv.ParseInt(optionArg.Data, 10, 64)
@@ -55,7 +48,7 @@ func handleSet(cmd data.Array, strg storage.StorageEngine) data.Message {
 			// expiry timestamp epoch in milliseconds
 			expiresAtTimeStampMillis = optionTimeInt
 		default:
-			return INVALID_CMD_FMT
+			return data.Error{ErrMsg: "syntax error"}
 		}
 	}
 
