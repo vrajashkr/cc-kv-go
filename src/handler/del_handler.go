@@ -8,18 +8,10 @@ import (
 // https://redis.io/docs/latest/commands/del/
 func handleDelete(cmd data.Array, strg storage.StorageEngine) data.Message {
 	cmdLen := len(cmd.Elements)
-	if cmdLen < 2 {
-		return INVALID_CMD_ARGS
-	}
-
 	keys := make([]string, cmdLen-1)
 
 	for idx := range cmdLen - 1 {
-		keyToCheck, ok := cmd.Elements[1+idx].(data.BulkString)
-		if !ok {
-			return INVALID_CMD_ARGS
-		}
-
+		keyToCheck := cmd.Elements[1+idx].(data.BulkString)
 		keys[idx] = keyToCheck.Data
 	}
 

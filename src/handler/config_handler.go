@@ -8,14 +8,7 @@ import (
 
 // https://redis.io/docs/latest/commands/config-get/
 func handleConfig(cmdArray data.Array) data.Message {
-	if len(cmdArray.Elements) < 2 {
-		return INVALID_CMD_ARGS
-	}
-
-	subCommandHolder, ok := cmdArray.Elements[1].(data.BulkString)
-	if !ok {
-		return INVALID_CMD_ARGS
-	}
+	subCommandHolder := cmdArray.Elements[1].(data.BulkString)
 
 	switch subCommandHolder.Data {
 	case "GET":

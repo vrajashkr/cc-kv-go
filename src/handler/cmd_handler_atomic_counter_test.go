@@ -86,7 +86,7 @@ func TestHandleAtomicCounterCommands(t *testing.T) {
 					data.BulkString{Data: "INCR"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'incr' command"},
 		},
 		{
 			data.Array{
@@ -94,7 +94,7 @@ func TestHandleAtomicCounterCommands(t *testing.T) {
 					data.BulkString{Data: "DECR"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'decr' command"},
 		},
 		{
 			data.Array{
@@ -103,7 +103,7 @@ func TestHandleAtomicCounterCommands(t *testing.T) {
 					data.SimpleString{Contents: "ctr1"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 		{
 			data.Array{
@@ -112,7 +112,7 @@ func TestHandleAtomicCounterCommands(t *testing.T) {
 					data.SimpleString{Contents: "ctr1"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 	}
 

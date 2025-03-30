@@ -9,14 +9,8 @@ import (
 // https://redis.io/docs/latest/commands/rpush/
 func handleListPush(cmdArray data.Array, strg storage.StorageEngine, isPrepend bool) data.Message {
 	cmdLen := len(cmdArray.Elements)
-	if cmdLen < 3 {
-		return INVALID_CMD_ARGS
-	}
 
-	listToUpdate, ok := cmdArray.Elements[1].(data.BulkString)
-	if !ok {
-		return INVALID_CMD_ARGS
-	}
+	listToUpdate := cmdArray.Elements[1].(data.BulkString)
 
 	listNameToUpdate := listToUpdate.Data
 

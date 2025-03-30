@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/vrajashkr/cc-kv-go/src/data"
@@ -11,7 +10,7 @@ import (
 func ServeInput(rawData []byte, storage storage.StorageEngine) string {
 	rawStr := string(rawData)
 	rawStrLen := len(rawStr)
-	slog.Info(fmt.Sprintf("received message: %q", rawStr))
+	slog.Debug("received message", "msg", rawStr)
 	numProcessedChars := 0
 	result := ""
 
@@ -27,6 +26,6 @@ func ServeInput(rawData []byte, storage storage.StorageEngine) string {
 			break
 		}
 	}
-
+	slog.Debug("response", "resp", result)
 	return result
 }

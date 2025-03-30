@@ -24,7 +24,7 @@ func TestHandleSetCommand(t *testing.T) {
 					data.BulkString{Data: "SET"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'set' command"},
 		},
 		{
 			data.Array{
@@ -33,7 +33,7 @@ func TestHandleSetCommand(t *testing.T) {
 					data.BulkString{Data: "testKey"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'set' command"},
 		},
 		{
 			data.Array{
@@ -43,7 +43,7 @@ func TestHandleSetCommand(t *testing.T) {
 					data.Integer{Value: 1},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 		{
 			data.Array{

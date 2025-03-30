@@ -22,7 +22,7 @@ func TestHandleGetCommand(t *testing.T) {
 					data.BulkString{Data: "GET"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "wrong number of arguments for 'get' command"},
 		},
 		{
 			data.Array{
@@ -31,7 +31,7 @@ func TestHandleGetCommand(t *testing.T) {
 					data.Integer{Value: 1},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
 		},
 		{
 			data.Array{

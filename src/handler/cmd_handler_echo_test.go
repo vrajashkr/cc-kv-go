@@ -29,9 +29,18 @@ func TestHandleEchoCommand(t *testing.T) {
 			data.Array{
 				Elements: []data.Message{
 					data.BulkString{Data: "ECHO"},
+					data.SimpleString{Contents: "hello world"},
 				},
 			},
-			data.Error{ErrMsg: "invalid args for command"},
+			data.Error{ErrMsg: "invalid format for command"},
+		},
+		{
+			data.Array{
+				Elements: []data.Message{
+					data.BulkString{Data: "ECHO"},
+				},
+			},
+			data.Error{ErrMsg: "wrong number of arguments for 'echo' command"},
 		},
 	}
 
