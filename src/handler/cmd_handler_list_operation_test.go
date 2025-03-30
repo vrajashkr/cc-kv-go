@@ -11,6 +11,7 @@ import (
 
 func TestHandleListOperationCommands(t *testing.T) {
 	storageEngine := storage.NewMapStorageEngine()
+	ch := handler.NewCommandHandler(&storageEngine)
 
 	testCases := []struct {
 		input data.Message
@@ -128,7 +129,7 @@ func TestHandleListOperationCommands(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(tc.input.ToDataString(), func(t *testing.T) {
-			result := handler.HandleCommand(tc.input, &storageEngine)
+			result := ch.HandleCommand(tc.input)
 			assert.Equal(tc.want, result)
 		})
 	}

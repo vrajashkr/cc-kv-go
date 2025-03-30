@@ -10,22 +10,16 @@ import (
 func handleListPush(cmdArray data.Array, strg storage.StorageEngine, isPrepend bool) data.Message {
 	cmdLen := len(cmdArray.Elements)
 
-	listToUpdate := cmdArray.Elements[1].(data.BulkString)
-
-	listNameToUpdate := listToUpdate.Data
+	listToUpdate := cmdArray.Elements[1].(data.BulkString).Data
 
 	listValues := make([]string, cmdLen-2)
 
 	for idx := range cmdLen - 2 {
-		keyToCheck, ok := cmdArray.Elements[2+idx].(data.BulkString)
-		if !ok {
-			return INVALID_CMD_ARGS
-		}
-
+		keyToCheck := cmdArray.Elements[2+idx].(data.BulkString)
 		listValues[idx] = keyToCheck.Data
 	}
 
-	res, err := strg.ListPush(listNameToUpdate, listValues, isPrepend)
+	res, err := strg.ListPush(listToUpdate, listValues, isPrepend)
 	if err != nil {
 		return data.Error{ErrMsg: "command failed. error: " + err.Error()}
 	}

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/vrajashkr/cc-kv-go/src/data"
@@ -69,7 +70,40 @@ func validateCommand(cmd data.Array) error {
 	return nil
 }
 
-func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
+type CommandHandler struct {
+	strgEngine storage.StorageEngine
+}
+
+func NewCommandHandler(storageEngine storage.StorageEngine) CommandHandler {
+	return CommandHandler{
+		strgEngine: storageEngine,
+	}
+}
+
+func (ch CommandHandler) ServeInput(rawData []byte) string {
+	rawStr := string(rawData)
+	rawStrLen := len(rawStr)
+	slog.Debug("received message", "msg", rawStr)
+	numProcessedChars := 0
+	result := ""
+
+	for {
+		numChars, parsedMsg, err := data.ProcessMessageString(rawStr[numProcessedChars:])
+		if err != nil {
+			result += data.Error{ErrMsg: err.Error()}.ToDataString()
+		} else {
+			result += ch.HandleCommand(parsedMsg).ToDataString()
+		}
+		numProcessedChars += numChars
+		if numProcessedChars == rawStrLen {
+			break
+		}
+	}
+	slog.Debug("response", "resp", result)
+	return result
+}
+
+func (ch CommandHandler) HandleCommand(msg data.Message) data.Message {
 	cmdArray, ok := msg.(data.Array)
 	if !ok {
 		return INVALID_CMD_FMT
@@ -94,23 +128,23 @@ func HandleCommand(msg data.Message, strg storage.StorageEngine) data.Message {
 	case CMD_ECHO:
 		result = handleEcho(cmdArray)
 	case CMD_SET:
-		result = handleSet(cmdArray, strg)
+		result = handleSet(cmdArray, ch.strgEngine)
 	case CMD_GET:
-		result = handleGet(cmdArray, strg)
+		result = handleGet(cmdArray, ch.strgEngine)
 	case CMD_CONFIG:
 		result = handleConfig(cmdArray)
 	case CMD_EXISTS:
-		result = handleExists(cmdArray, strg)
+		result = handleExists(cmdArray, ch.strgEngine)
 	case CMD_DELETE:
-		result = handleDelete(cmdArray, strg)
+		result = handleDelete(cmdArray, ch.strgEngine)
 	case CMD_INCR:
-		result = handleAtomicUnitDelta(cmdArray, strg, false)
+		result = handleAtomicUnitDelta(cmdArray, ch.strgEngine, false)
 	case CMD_DECR:
-		result = handleAtomicUnitDelta(cmdArray, strg, true)
+		result = handleAtomicUnitDelta(cmdArray, ch.strgEngine, true)
 	case CMD_LPUSH:
-		result = handleListPush(cmdArray, strg, true)
+		result = handleListPush(cmdArray, ch.strgEngine, true)
 	case CMD_RPUSH:
-		result = handleListPush(cmdArray, strg, false)
+		result = handleListPush(cmdArray, ch.strgEngine, false)
 	default:
 		result = data.Error{
 			ErrMsg: fmt.Sprintf("unsupported command %s", firstCmd.Data),

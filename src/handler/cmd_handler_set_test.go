@@ -13,6 +13,7 @@ import (
 
 func TestHandleSetCommand(t *testing.T) {
 	storageEngine := storage.NewMapStorageEngine()
+	ch := handler.NewCommandHandler(&storageEngine)
 
 	testCases := []struct {
 		input data.Message
@@ -85,7 +86,7 @@ func TestHandleSetCommand(t *testing.T) {
 	assert := assert.New(t)
 	for _, tc := range testCases {
 		t.Run(tc.input.ToDataString(), func(t *testing.T) {
-			result := handler.HandleCommand(tc.input, &storageEngine)
+			result := ch.HandleCommand(tc.input)
 			assert.Equal(tc.want, result)
 		})
 	}
@@ -95,6 +96,7 @@ func TestHandleSetWithTimeOptions(t *testing.T) {
 	assert := assert.New(t)
 
 	storageEngine := storage.NewMapStorageEngine()
+	ch := handler.NewCommandHandler(&storageEngine)
 
 	testCases := []struct {
 		input                data.Array
@@ -182,7 +184,7 @@ func TestHandleSetWithTimeOptions(t *testing.T) {
 				tc.input.Elements = append(tc.input.Elements, data.BulkString{Data: fmt.Sprintf("%d", timeValueToInsert)})
 			}
 
-			result := handler.HandleCommand(tc.input, &storageEngine)
+			result := ch.HandleCommand(tc.input)
 			assert.Equal(tc.want, result)
 
 			fetchCmd := data.Array{
@@ -192,13 +194,13 @@ func TestHandleSetWithTimeOptions(t *testing.T) {
 				},
 			}
 
-			preWaitFetchResult := handler.HandleCommand(fetchCmd, &storageEngine)
+			preWaitFetchResult := ch.HandleCommand(fetchCmd)
 			assert.Equal(data.BulkString{Data: tc.immediateFetchResult}, preWaitFetchResult)
 
 			time.Sleep(tc.sleepDuration)
 
 			// post wait, no data is expected
-			postWaitFetchResult := handler.HandleCommand(fetchCmd, &storageEngine)
+			postWaitFetchResult := ch.HandleCommand(fetchCmd)
 			assert.Equal(data.Null{}, postWaitFetchResult)
 		})
 	}
