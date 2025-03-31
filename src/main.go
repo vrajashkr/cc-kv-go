@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+
 	slog.Info("starting cc-kv-go server")
 
 	slog.Info("initializing storage engine")
